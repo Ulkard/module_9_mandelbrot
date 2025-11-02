@@ -27,7 +27,18 @@ private:
 
 class WaitForFPS {
 public:
+    WaitForFPS() = default;
+    void operator()() {
+        static constexpr std::chrono::milliseconds frame_time = 1000ms / 60;
+        const auto remaining_time = frame_time - clock_.GetFrameTime();
+        if (remaining_time > 0ms) {
+            std::this_thread::sleep_for(remaining_time);
+        }
+        clock_.Reset();
+    }
 
+private:
+    FrameClock clock_;
 };
 
 class MandelbrotApp {

@@ -46,6 +46,7 @@ target_include_directories(${PROJECT_NAME}_imp PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${stdexec_SOURCE_DIR}/include
     ${SFML_INCLUDE_DIR}
+    /usr/include/c++/14
 )
 message(STATUS "matplotplusplus_SOURCE_DIR = ${matplotplusplus_SOURCE_DIR}")
 target_link_libraries(${PROJECT_NAME}_imp PUBLIC
@@ -73,7 +74,8 @@ target_link_libraries(unit_tests PRIVATE
 target_include_directories(unit_tests PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${stdexec_SOURCE_DIR}/include
-    ${matplotplusplus_SOURCE_DIR}/source)
+    ${matplotplusplus_SOURCE_DIR}/source
+    /usr/include/c++/14)
 
 # Включаем тестирование
 enable_testing()
