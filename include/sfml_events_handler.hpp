@@ -43,15 +43,19 @@ public:
                     std::println("mouse y: {}", event.mouseWheelScroll.y);
 
                     ZoomToPoint(event.mouseWheelScroll.x, event.mouseWheelScroll.y, event.mouseWheelScroll.delta > 0);
-                    receiver_.set_value(state_);
+                    receiver_.set_value();
                     break;
 
                 case sf::Event::KeyPressed:
                     if (event.key.code == sf::Keyboard::Escape) {
-                        receiver_.set_stop();
+                        state_.should_exit = true;
+                        receiver_.set_stopped();
                     }
                     break;
-
+                case sf::Event::Closed:
+                    state_.should_exit = true;
+                    receiver_.set_stopped();
+                    break;
                 default:
                     std::println("SfmlEventHandler(): unknown event");
                     break;
@@ -100,8 +104,7 @@ public:
 
     template <typename Env>
     auto get_completion_signatures(Env &&) const {
-        return stdexec::completion_signatures<stdexec::set_value_t(AppState),
-                                              stdexec::set_error_t(std::exception_ptr)>{};
+        return stdexec::completion_signatures<stdexec::set_value_t(), stdexec::set_error_t(std::exception_ptr)>{};
     }
 
     template <typename Receiver>

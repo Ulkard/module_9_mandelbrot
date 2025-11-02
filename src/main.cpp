@@ -1,3 +1,4 @@
+#include <SFML/Config.hpp>
 #include <chrono>
 #include <print>
 #include <thread>
@@ -27,9 +28,9 @@ private:
 
 class WaitForFPS {
 public:
-    WaitForFPS() = default;
+    WaitForFPS(FrameClock &clock, uint32_t frame_rate) : clock_(clock), frame_time(1000ms / frame_rate) {}
+
     void operator()() {
-        static constexpr std::chrono::milliseconds frame_time = 1000ms / 60;
         const auto remaining_time = frame_time - clock_.GetFrameTime();
         if (remaining_time > 0ms) {
             std::this_thread::sleep_for(remaining_time);
@@ -38,7 +39,8 @@ public:
     }
 
 private:
-    FrameClock clock_;
+    FrameClock &clock_;
+    const std::chrono::milliseconds frame_time = 1000ms / 60;
 };
 
 class MandelbrotApp {
@@ -70,16 +72,16 @@ public:
         auto pipeline = SfmlEventHandler{window_, render_settings_, state_, zoom_clock} |  //
                         stdexec::let_value([this]() {                                      //
                             return CalculateMandelbrotAsyncSender{state_, render_settings_, renderer_};
-                        }) |
-                        stdexec::let_value([this](RenderResult data) {
-                            return SFMLRender{std::move(data), image_, texture_, sprite_, window_, render_settings_};
-                        }) |  //
-                        stdexec::then(WaitForFPS{frame_clock, 60});
+                        }); /*  |
+                         stdexec::let_value([this](RenderResult data) {
+                             return SFMLRender{std::move(data), image_, texture_, sprite_, window_, render_settings_};
+                         }) |  //
+                         stdexec::then(WaitForFPS{frame_clock, 60}); */
 
         auto repeated_pipeline =
             std::move(pipeline) | stdexec::then([this]() { return state_.should_exit; }) | exec::repeat_effect_until();
 
-        stdexec::sync_wait(std::move(repeated_pipeline));
+        stdexec::sync_wait(std::move(pipeline));
     }
 };
 

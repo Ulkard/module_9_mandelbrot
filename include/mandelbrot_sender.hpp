@@ -44,7 +44,7 @@ private:
     }
 };
 
-template <typename Receiver>
+// template <typename Receiver>
 struct MandelbrotSender {
     mandelbrot::ViewPort viewport_;
     RenderSettings settings_;
@@ -63,11 +63,12 @@ struct MandelbrotSender {
 
     template <typename Receiver>
     auto connect(Receiver &&receiver) const {
-        return MandelbrotOperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver));
+        return MandelbrotOperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver), viewport_, settings_,
+                                                                region_);
     }
 };
 
-[[nodiscard]] inline auto makeMandelbrotSender(mandelbrot::ViewPort viewport, RenderSettings settings,
+/* [[nodiscard]] inline auto makeMandelbrotSender(mandelbrot::ViewPort viewport, RenderSettings settings,
                                                PixelRegion region) {
     return MandelbrotSender<void>{viewport, settings, region};
-}
+} */

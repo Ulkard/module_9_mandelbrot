@@ -1,8 +1,10 @@
 #pragma once
 
+#include "mandelbrot_fractal_utils.hpp"
 #include "mandelbrot_renderer.hpp"
 #include "types.hpp"
 #include <print>
+#include <stdexcept>
 
 template <typename Receiver>
 struct CalculateOperationState {
@@ -10,8 +12,10 @@ struct CalculateOperationState {
     Receiver receiver_;
     mandelbrot::ViewPort viewport_;
     RenderSettings settings_;
-    PixelRegion region_;
     AppState &state_;
+
+    explicit CalculateOperationState(Receiver &&r, RenderSettings settings, AppState &state)
+        : receiver_(r), viewport_(state.viewport), settings_(settings), state_(state) {}
 
     void start() noexcept {
         try {
@@ -27,7 +31,13 @@ private:
     void exec() {
         using namespace mandelbrot;
         if (state_.need_rerender) {
-            receiver_.set_value(renderer_.RenderAsync<THREAD_POOL_SIZE>(viewport_, settings_));
+            auto task = renderer_.RenderAsync<THREAD_POOL_SIZE>(viewport_, settings_);
+            auto result = stdexec::sync_wait(std::move(task));
+            if (result) {
+                receiver_.set_value(std::get<0>(*result));
+            } else {
+                receiver_.set_error(std::runtime_error("RenderAsync failed"));
+            }
         } else {
             std::print("CalculateOperationState::state_.need_rerender = false");
         }
@@ -50,7 +60,8 @@ public:
 
     template <typename Receiver>
     auto connect(Receiver &&receiver) const {
-        return CalculateOperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver));
+        return CalculateOperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver), render_settings_,
+                                                               state_);
     }
 
 private:

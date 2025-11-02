@@ -74,11 +74,12 @@ public:
 
     template <typename Env>
     auto get_completion_signatures(Env &&) const {
-        return stdexec::completion_signatures<stdexec::set_value_t(void), stdexec::set_error_t(std::exception_ptr)>{};
+        return stdexec::completion_signatures<stdexec::set_value_t(), stdexec::set_error_t(std::exception_ptr)>{};
     }
 
     template <typename Receiver>
     auto connect(Receiver &&receiver) const {
-        return OperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver));
+        return OperationState<std::decay_t<Receiver>>(std::forward<Receiver>(receiver), render_result_, image_,
+                                                      texture_, sprite_, window_, render_settings_);
     }
 };
