@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <complex>
 #include <cstdint>
 
@@ -15,6 +16,10 @@ struct ViewPort {
 
     [[nodiscard]] constexpr double width() const noexcept { return x_max - x_min; }
     [[nodiscard]] constexpr double height() const noexcept { return y_max - y_min; }
+
+    bool operator==(const ViewPort &other) const {
+        return x_min == other.x_min && x_max == other.x_max && y_min == other.y_min && y_max == other.y_max;
+    }
 };
 
 struct RgbColor {
