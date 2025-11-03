@@ -4,6 +4,7 @@
 #include <print>
 #include <stdexec/execution.hpp>
 
+#include "mandelbrot_fractal_utils.hpp"
 #include "types.hpp"
 
 class SfmlEventHandler {
@@ -38,29 +39,37 @@ public:
             while (window_.pollEvent(event)) {
                 switch (event.type) {
                 case sf::Event::MouseWheelScrolled:
-                    std::println("wheel movement: {}", event.mouseWheelScroll.delta);
-                    std::println("mouse x: {}", event.mouseWheelScroll.x);
-                    std::println("mouse y: {}", event.mouseWheelScroll.y);
+                    std::println(" wheel movement: {}", event.mouseWheelScroll.delta);
+                    std::println(" mouse x: {}", event.mouseWheelScroll.x);
+                    std::println(" mouse y: {}", event.mouseWheelScroll.y);
 
                     ZoomToPoint(event.mouseWheelScroll.x, event.mouseWheelScroll.y, event.mouseWheelScroll.delta > 0);
-                    receiver_.set_value();
                     break;
 
                 case sf::Event::KeyPressed:
+                    std::println(" sf::Event::KeyPressed");
                     if (event.key.code == sf::Keyboard::Escape) {
+                        std::println("  sf::Event::KeyPressed::Escape");
                         state_.should_exit = true;
                         receiver_.set_stopped();
                     }
                     break;
                 case sf::Event::Closed:
+                    std::println(" sf::Event::Closed");
                     state_.should_exit = true;
                     receiver_.set_stopped();
                     break;
                 default:
-                    std::println("SfmlEventHandler(): unknown event");
                     break;
                 }
             }
+            /* static mandelbrot::ViewPort old_viewport;
+            if (state_.viewport != old_viewport) {
+                state_.need_rerender = true;
+            } else {
+                state_.need_rerender = false;
+            } */
+            receiver_.set_value();
         }
 
         void HandleContinuousZoom() {
@@ -88,7 +97,6 @@ public:
             const double new_width = state_.viewport.width() * zoom_factor;
             const double new_height = state_.viewport.height() * zoom_factor;
 
-            state_.need_rerender = true;
             state_.viewport.x_min = target_x;
             state_.viewport.x_max = target_x + new_width;
 

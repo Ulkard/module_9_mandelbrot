@@ -27,20 +27,26 @@ struct CalculateOperationState {
 
 private:
     MandelbrotRenderer renderer_;
+    RenderResult result_;
 
     void exec() {
         using namespace mandelbrot;
+
+        TimeChecker tc("RenderAsync");
         if (state_.need_rerender) {
             auto task = renderer_.RenderAsync<THREAD_POOL_SIZE>(viewport_, settings_);
             auto result = stdexec::sync_wait(std::move(task));
             if (result) {
-                receiver_.set_value(std::get<0>(*result));
+                result_ = std::get<0>(*result);
             } else {
                 receiver_.set_error(std::runtime_error("RenderAsync failed"));
             }
         } else {
-            std::print("CalculateOperationState::state_.need_rerender = false");
+            std::println("CalculateOperationState::state_.need_rerender = false");
         }
+        tc.count();
+
+        receiver_.set_value(result_);
     }
 };
 

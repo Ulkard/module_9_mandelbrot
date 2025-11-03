@@ -39,14 +39,13 @@ public:
 
             uint32_t width = std::min<uint32_t>(render_settings_.width, raw_points.front().size());
             uint32_t height = std::min<uint32_t>(render_settings_.height, raw_points.size());
-            image_.create(width, height);
+
             for (size_t y = 0; y < height; ++y) {
                 for (size_t x = 0; x < width; ++x) {
                     image_.setPixel(x, y, sf::Color{raw_points[y][x].r, raw_points[y][x].g, raw_points[y][x].b});
                 }
             }
 
-            texture_.create(width, height);
             texture_.update(image_);
 
             sprite_.setTexture(texture_);

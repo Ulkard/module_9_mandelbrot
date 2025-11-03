@@ -1,5 +1,7 @@
 #include <SFML/Config.hpp>
 #include <chrono>
+#include <cstddef>
+#include <memory>
 #include <print>
 #include <thread>
 #include <utility>
@@ -15,6 +17,8 @@
 #include "sfml_renderer.hpp"
 
 using namespace std::chrono_literals;
+namespace ex = stdexec;
+
 class FrameClock {
 public:
     FrameClock() { Reset(); }
@@ -31,9 +35,12 @@ public:
     WaitForFPS(FrameClock &clock, uint32_t frame_rate) : clock_(clock), frame_time(1000ms / frame_rate) {}
 
     void operator()() {
-        const auto remaining_time = frame_time - clock_.GetFrameTime();
-        if (remaining_time > 0ms) {
-            std::this_thread::sleep_for(remaining_time);
+        const int remaining_ms = duration_cast<std::chrono::milliseconds>(frame_time - clock_.GetFrameTime()).count();
+        if (remaining_ms > 0) {
+            std::println("sleep for {}", remaining_ms);
+            std::this_thread::sleep_for(std::chrono::milliseconds(remaining_ms));
+        } else {
+            std::println("too long frame: {}ms", -remaining_ms);
         }
         clock_.Reset();
     }
@@ -64,24 +71,33 @@ public:
 
         window_.setKeyRepeatEnabled(false);
     }
+    ~MandelbrotApp() {
+        std::println("~MandelbrotApp()");
+        if (window_.isOpen()) {
+            window_.close();
+        }
+    }
 
     void Run() {
         FrameClock frame_clock;
         sf::Clock zoom_clock;
 
         auto pipeline = SfmlEventHandler{window_, render_settings_, state_, zoom_clock} |  //
-                        stdexec::let_value([this]() {                                      //
+                        ex::let_value([this]() {                                           //
                             return CalculateMandelbrotAsyncSender{state_, render_settings_, renderer_};
-                        }); /*  |
-                         stdexec::let_value([this](RenderResult data) {
-                             return SFMLRender{std::move(data), image_, texture_, sprite_, window_, render_settings_};
-                         }) |  //
-                         stdexec::then(WaitForFPS{frame_clock, 60}); */
+                        }) |
+                        ex::let_value([this](RenderResult data) {
+                            return SFMLRender{std::move(data), image_, texture_, sprite_, window_, render_settings_};
+                        }) |  //
+                        ex::then(WaitForFPS{frame_clock, 60});
 
         auto repeated_pipeline =
-            std::move(pipeline) | stdexec::then([this]() { return state_.should_exit; }) | exec::repeat_effect_until();
+            std::move(pipeline) | ex::then([this]() { return state_.should_exit; }) | exec::repeat_effect_until();
 
-        stdexec::sync_wait(std::move(pipeline));
+        /* for (size_t i = 0; i < 10000; ++i) {
+            ex::sync_wait(std::move(pipeline));
+        } */
+        ex::sync_wait(std::move(repeated_pipeline));
     }
 };
 

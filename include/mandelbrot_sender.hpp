@@ -5,6 +5,7 @@
 
 #include "mandelbrot_fractal_utils.hpp"
 #include "types.hpp"
+#include <print>
 
 template <typename Receiver>
 struct MandelbrotOperationState {
@@ -25,18 +26,16 @@ struct MandelbrotOperationState {
 private:
     void exec() {
         using namespace mandelbrot;
-        PixelMatrix result;
+
         uint32_t width = region_.end_col - region_.start_col;
         uint32_t height = region_.end_row - region_.start_row;
-        result.reserve(height);
+        PixelMatrix result(height, std::vector<uint32_t>(width));
 
         for (uint32_t y = region_.start_row; y < region_.end_row; ++y) {
-            result.push_back(std::vector<uint32_t>{});
-            result.back().reserve(width);
             for (uint32_t x = region_.start_col; x < region_.end_col; ++x) {
                 std::complex<double> point = Pixel2DToComplex(x, y, viewport_, settings_.width, settings_.height);
                 uint32_t iter = CalculateIterationsForPoint(point, settings_.max_iterations, settings_.escape_radius);
-                result.back().push_back(iter);
+                result[y - region_.start_row][x - region_.start_col] = iter;
             }
         }
 
@@ -44,7 +43,6 @@ private:
     }
 };
 
-// template <typename Receiver>
 struct MandelbrotSender {
     mandelbrot::ViewPort viewport_;
     RenderSettings settings_;
@@ -67,8 +65,3 @@ struct MandelbrotSender {
                                                                 region_);
     }
 };
-
-/* [[nodiscard]] inline auto makeMandelbrotSender(mandelbrot::ViewPort viewport, RenderSettings settings,
-                                               PixelRegion region) {
-    return MandelbrotSender<void>{viewport, settings, region};
-} */
