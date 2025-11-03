@@ -33,25 +33,24 @@ public:
     private:
         void exec() {
             auto &raw_points = render_result_.color_data;
-            if (raw_points.empty() || raw_points.front().empty()) {
-                throw std::invalid_argument("cant create image from nothing");
-            }
+            if (!raw_points.empty() && !raw_points.front().empty()) {
 
-            uint32_t width = std::min<uint32_t>(render_settings_.width, raw_points.front().size());
-            uint32_t height = std::min<uint32_t>(render_settings_.height, raw_points.size());
+                uint32_t width = std::min<uint32_t>(render_settings_.width, raw_points.front().size());
+                uint32_t height = std::min<uint32_t>(render_settings_.height, raw_points.size());
 
-            for (size_t y = 0; y < height; ++y) {
-                for (size_t x = 0; x < width; ++x) {
-                    image_.setPixel(x, y, sf::Color{raw_points[y][x].r, raw_points[y][x].g, raw_points[y][x].b});
+                for (size_t y = 0; y < height; ++y) {
+                    for (size_t x = 0; x < width; ++x) {
+                        image_.setPixel(x, y, sf::Color{raw_points[y][x].r, raw_points[y][x].g, raw_points[y][x].b});
+                    }
                 }
+
+                texture_.update(image_);
+
+                sprite_.setTexture(texture_);
+                window_.clear();
+                window_.draw(sprite_);
+                window_.display();
             }
-
-            texture_.update(image_);
-
-            sprite_.setTexture(texture_);
-            window_.clear();
-            window_.draw(sprite_);
-            window_.display();
 
             receiver_.set_value();
         }

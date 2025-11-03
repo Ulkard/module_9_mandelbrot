@@ -40,7 +40,7 @@ public:
             std::println("sleep for {}", remaining_ms);
             std::this_thread::sleep_for(std::chrono::milliseconds(remaining_ms));
         } else {
-            std::println("too long frame: {}ms", -remaining_ms);
+            std::println("--frame delay: {}ms", -remaining_ms);
         }
         clock_.Reset();
     }

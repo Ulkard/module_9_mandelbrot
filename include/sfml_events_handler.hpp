@@ -38,22 +38,26 @@ public:
             sf::Event event;
             while (window_.pollEvent(event)) {
                 switch (event.type) {
-                case sf::Event::MouseWheelScrolled:
-                    std::println(" wheel movement: {}", event.mouseWheelScroll.delta);
-                    std::println(" mouse x: {}", event.mouseWheelScroll.x);
-                    std::println(" mouse y: {}", event.mouseWheelScroll.y);
+                case sf::Event::MouseButtonPressed:
+                    state_.left_mouse_pressed = true;
+                    HandleContinuousZoom();
+                    break;
 
-                    ZoomToPoint(event.mouseWheelScroll.x, event.mouseWheelScroll.y, event.mouseWheelScroll.delta > 0);
+                case sf::Event::MouseButtonReleased:
+                    state_.left_mouse_pressed = false;
                     break;
 
                 case sf::Event::KeyPressed:
                     std::println(" sf::Event::KeyPressed");
-                    if (event.key.code == sf::Keyboard::Escape) {
+                    switch (event.key.code) {
+                    case sf::Keyboard::Escape:
                         std::println("  sf::Event::KeyPressed::Escape");
                         state_.should_exit = true;
                         receiver_.set_stopped();
+                        break;
                     }
                     break;
+
                 case sf::Event::Closed:
                     std::println(" sf::Event::Closed");
                     state_.should_exit = true;
@@ -63,12 +67,15 @@ public:
                     break;
                 }
             }
-            /* static mandelbrot::ViewPort old_viewport;
+            static mandelbrot::ViewPort old_viewport{999, 999, 999, 999};
             if (state_.viewport != old_viewport) {
+                std::println("HandleEvents.need_rerender = true");
                 state_.need_rerender = true;
+                old_viewport = state_.viewport;
             } else {
+                std::println("HandleEvents.need_rerender = false");
                 state_.need_rerender = false;
-            } */
+            }
             receiver_.set_value();
         }
 

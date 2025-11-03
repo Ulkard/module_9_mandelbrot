@@ -17,7 +17,7 @@ struct ViewPort {
     [[nodiscard]] constexpr double width() const noexcept { return x_max - x_min; }
     [[nodiscard]] constexpr double height() const noexcept { return y_max - y_min; }
 
-    bool operator==(const ViewPort &other) {
+    bool operator==(const ViewPort &other) const {
         return x_min == other.x_min && x_max == other.x_max && y_min == other.y_min && y_max == other.y_max;
     }
 };
@@ -109,27 +109,3 @@ struct RgbColors {
 }
 
 }  // namespace mandelbrot
-
-#include <print>
-using namespace std::chrono_literals;
-
-class TimeChecker {
-public:
-    TimeChecker(std::string name) : name_(name) {};
-    ~TimeChecker() {
-        if (!counted) {
-            count();
-        }
-    }
-    void count() {
-        auto result_ms =
-            duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_time).count();
-        std::println("{}{}{}: {}ms", (result_ms < 5 ? "  " : ""), (result_ms < 10 ? "  " : ""), name_, result_ms);
-        counted = true;
-    }
-
-private:
-    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
-    std::string name_;
-    bool counted = false;
-};

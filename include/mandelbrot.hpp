@@ -27,26 +27,28 @@ struct CalculateOperationState {
 
 private:
     MandelbrotRenderer renderer_;
-    RenderResult result_;
 
     void exec() {
+        // for tests
+        if (settings_.width == 0 || settings_.height == 0) {
+            receiver_.set_error(std::make_exception_ptr(std::invalid_argument("settings zero resolution")));
+            return;
+        }
+
         using namespace mandelbrot;
 
-        TimeChecker tc("RenderAsync");
         if (state_.need_rerender) {
             auto task = renderer_.RenderAsync<THREAD_POOL_SIZE>(viewport_, settings_);
             auto result = stdexec::sync_wait(std::move(task));
             if (result) {
-                result_ = std::get<0>(*result);
+                receiver_.set_value(std::get<0>(*result));
             } else {
-                receiver_.set_error(std::runtime_error("RenderAsync failed"));
+                receiver_.set_error(std::make_exception_ptr(std::runtime_error("RenderAsync failed")));
             }
         } else {
-            std::println("CalculateOperationState::state_.need_rerender = false");
+            receiver_.set_value(RenderResult{
+                .pixel_data = {}, .color_data = {}, .viewport = viewport_, .settings = settings_, .render_time = {}});
         }
-        tc.count();
-
-        receiver_.set_value(result_);
     }
 };
 

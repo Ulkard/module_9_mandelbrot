@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <exec/static_thread_pool.hpp>
+#include <stdexcept>
 #include <stdexec/execution.hpp>
 
 #include "mandelbrot_sender.hpp"
@@ -51,7 +52,6 @@ public:
 private:
     ColorMatrix itersToColors(PixelMatrix pixel_data, RenderSettings settings) {
         ColorMatrix color_data(pixel_data.size(), std::vector<mandelbrot::RgbColor>(settings.width));
-
         for (size_t y = 0; y < pixel_data.size(); ++y) {
             for (size_t x = 0; x < settings.width; ++x) {
                 color_data[y][x] = mandelbrot::IterationsToColor(pixel_data[y][x], settings.max_iterations);
